@@ -1,6 +1,12 @@
 import pynvim
 import yaml
 import os
+import sys
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(BASE_DIR)
+
+from esm_element import EsmElementFactory
 
 @pynvim.plugin
 class Esm(object):
@@ -37,6 +43,41 @@ class Esm(object):
         if path is not None:
             self.vim.command(':!svnext ' + esm_command + ' --overwrite-local-changes -' + esm_command_option + ' ' + path)
 
+    @pynvim.command('EsmClass', range='', nargs='*',sync=True)
+    def esm_class(self, args, range):
+        current_word = (self.vim.eval('expand("<cWORD>")')).strip(':')
+        current_file_path = self.vim.eval('expand("%:p")')
+    
+        self.found_list.clear()
+        with open(current_file_path) as f:
+            data = yaml.load(f, Loader=yaml.FullLoader)
+
+        factory = EsmElementFactory
+        new_element = factory.get_element(data, current_word)
+        self.vim.command(':echo "'+ new_element.element_type + '"')
+
+    @pynvim.command('EsmBuffer', nargs='*', range='')
+    def esm_buffer(self, args, range):
+        line_count = self.vim.api.win_get_cursor(0)
+        row, column = line_count
+        start = row-1
+        end = row+1
+        lines = self.vim.api.buf_get_lines(0, start, end, 0)
+
+        # self.vim.current.line = ('length: {}' .format(len(lines)))
+        # self.vim.current.line = ('0: {}' .format(lines[0]))
+        # self.vim.current.line = ('1: {}' .format(lines[1]))
+        test_line = lines[1].split(':')
+        test_line[1] = ' \'blub\''
+
+
+        lines[1] = ':'.join(test_line)
+        self.vim.api.buf_set_lines(0, start, end, 0, lines)
+
+        # self.vim.command('echo "' + str(line_count) + '"')
+
+        # self.vim.current.line = ('Command with args: {}, range: {}'
+        #                           .format(args, range))
 
     def _esm_get_key_path_in_dict(self):
         current_word = (self.vim.eval('expand("<cWORD>")')).strip(':')
