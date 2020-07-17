@@ -43,6 +43,36 @@ class Esm(object):
         if path is not None:
             self.vim.command(':!svnext ' + esm_command + ' --overwrite-local-changes -' + esm_command_option + ' ' + path)
 
+    @pynvim.command('EsmCmd', range='', nargs='*',sync=True)
+    def esm_cmd(self, args, range):
+        # add checks for arg parsing
+        esm_command = args[0]
+
+        current_word = (self.vim.eval('expand("<cWORD>")')).strip(':')
+        current_file_path = self.vim.eval('expand("%:p")')
+    
+        self.found_list.clear()
+        with open(current_file_path) as f:
+            data = yaml.load(f, Loader=yaml.FullLoader)
+
+        # factory = EsmElementFactory
+        current_element = EsmElementFactory.get_element(data, current_word)
+
+        if esm_command == 'update':
+            command_str = current_element.get_update_command()
+        elif esm_command == 'update_file':
+            command_str = current_element.get_update_file_command()
+        elif esm_command == 'diff':
+            command_str = current_element.get_diff_command()
+        elif esm_command == 'clean':
+            command_str = current_element.get_clean_command()
+        else:
+            self.vim.err_write('EsmCommand does not support argument: {}'.format(esm_command))
+
+        self.vim.command(':!'+ command_str)
+
+
+
     @pynvim.command('EsmClass', range='', nargs='*',sync=True)
     def esm_class(self, args, range):
         current_word = (self.vim.eval('expand("<cWORD>")')).strip(':')
@@ -54,7 +84,7 @@ class Esm(object):
 
         factory = EsmElementFactory
         new_element = factory.get_element(data, current_word)
-        self.vim.command(':echo "'+ new_element.element_type + '"')
+        self.vim.command(':!'+ new_element.get_update_command())
 
     @pynvim.command('EsmBuffer', nargs='*', range='')
     def esm_buffer(self, args, range):
@@ -126,5 +156,3 @@ class Esm(object):
 
         for k, v in mappings.items():
             self.vim.api.buf_set_keymap(buf, 'n', k, v, {'nowait':True, 'noremap' : True, 'silent' : True })
-
-

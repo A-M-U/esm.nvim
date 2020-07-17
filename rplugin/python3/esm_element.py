@@ -1,4 +1,5 @@
 from abc import ABC, abstractstaticmethod
+import re
 
 class EsmElementFactory():
     key_list = []
@@ -10,18 +11,21 @@ class EsmElementFactory():
             if cls._esm_find_key_in_dict(externals, keyword):
                 key_path = "/".join(cls.key_list[::-1])
                 try:
-                    element_name = cls.key_list[-1]
-                    if cls._esm_element_is_group(externals):
+                    element_name = cls.key_list[0]
+                    if cls._esm_element_is_group(cls.element_dict):
                         return EsmElementGroup(key_path, element_name)
                     else:
-                        element_url = element_dict[cls.key_list[-1]]['url']
-                        element_rev = element_dict[cls.key_list[-1]]['rev']
-                        if cls._esm_element_is_normal(externals, element_name):
-                            return EsmElementNormal(key_path, element_name, element_url, element_rev)
-                        elif cls._esm_element_is_bsp(externals, element_name):
+                        element_url = cls.element_dict['url']
+                        element_rev = cls.element_dict['revision']
+                        if cls._esm_element_is_bsp(element_url, element_name):
                             return EsmElementBsp(key_path, element_name, element_url, element_rev)
-                        elif cls._esm_element_is_port(externals, element_name):
+                        elif cls._esm_element_is_rpc(element_url, element_name):
+                            return EsmElementRpc(key_path, element_name, element_url, element_rev)
+                        elif cls._esm_element_is_port(element_url, element_name):
                             return EsmElementPort(key_path, element_name, element_url, element_rev)
+                        else:
+                            #using default add logging
+                            return EsmElementNormal(key_path, element_name, element_url, element_rev)
                     raise AssertionError('element type not found')
                 except AssertionError as _e:
                     print(_e)
@@ -31,18 +35,35 @@ class EsmElementFactory():
     #todo: output error in vim
 
     @classmethod
-    def _esm_element_is_normal(cls, dictionary, name):
-        #todo: use regex to find the repo name
+    def _esm_element_is_normal(cls, element_url, element_name):
+        #todo: use regex to find the repo element_name
         return False
 
     @classmethod
-    def _esm_element_is_bsp(cls, dictionary, name):
-        #todo: use regex to find the repo name
+    def _esm_element_is_bsp(cls, element_url, element_name):
+        repo_list = ['Repository_BSP']
+
+        for repo in repo_list:
+            if re.search(repo, element_url):
+                return True
         return False
 
     @classmethod
-    def _esm_element_is_port(cls, dictionary, name):
-        #todo: use regex to find the repo name
+    def _esm_element_is_rpc(cls, element_url, element_name):
+        repo_list = ['Repository_RadarProcessingChain']
+
+        for repo in repo_list:
+            if re.search(repo, element_url):
+                return True
+        return False
+
+    @classmethod
+    def _esm_element_is_port(cls, element_url, element_name):
+        repo_list = ['Repository_Ports']
+
+        for repo in repo_list:
+            if re.search(repo, element_url):
+                return True
         return False
 
     @classmethod
@@ -112,6 +133,11 @@ class EsmElementNormal(EsmElementInterface):
 
 
     def get_update_file_command(self):
+        try:
+            raise AssertionError('commmand not supported for esm_element_type: normal')
+        except AssertionError as _e:
+            print(_e)
+            raise
         return None
 
 
@@ -146,6 +172,11 @@ class EsmElementPort(EsmElementInterface):
 
 
     def get_update_file_command(self):
+        try:
+            raise AssertionError('commmand not supported for esm_element_type: port')
+        except AssertionError as _e:
+            print(_e)
+            raise
         return None
 
     # def update_revision(self, requested_revison='HEAD')
@@ -175,6 +206,11 @@ class EsmElementGroup(EsmElementInterface):
         super().__init__(key_path, name, 'group')
 
     def get_update_file_command(self):
+        try:
+            raise AssertionError('commmand not supported for esm_element_type: group')
+        except AssertionError as _e:
+            print(_e)
+            raise
         return None
 
     def _esm_command(self, command_option):
@@ -190,3 +226,15 @@ class EsmElementBsp(EsmElementInterface):
 
     def get_update_file_command(self):
         return None
+
+
+class EsmElementRpc(EsmElementInterface):
+    def __init__(self, key_path, name, url, rev):
+        super().__init__(key_path, name, 'rpc')
+        self.url =  url
+        self.revison = rev
+
+    def get_update_file_command(self):
+        return None
+
+
