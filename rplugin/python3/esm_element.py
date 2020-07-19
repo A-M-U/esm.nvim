@@ -7,32 +7,23 @@ class EsmElementFactory():
 
     @classmethod
     def get_element(cls, externals, keyword):
-        try:
-            if cls._esm_find_key_in_dict(externals, keyword):
-                key_path = "/".join(cls.key_list[::-1])
-                try:
-                    element_name = cls.key_list[0]
-                    if cls._esm_element_is_group(cls.element_dict):
-                        return EsmElementGroup(key_path, element_name)
-                    else:
-                        element_url = cls.element_dict['url']
-                        element_rev = cls.element_dict['revision']
-                        if cls._esm_element_is_bsp(element_url, element_name):
-                            return EsmElementBsp(key_path, element_name, element_url, element_rev)
-                        elif cls._esm_element_is_rpc(element_url, element_name):
-                            return EsmElementRpc(key_path, element_name, element_url, element_rev)
-                        elif cls._esm_element_is_port(element_url, element_name):
-                            return EsmElementPort(key_path, element_name, element_url, element_rev)
-                        else:
-                            #using default add logging
-                            return EsmElementNormal(key_path, element_name, element_url, element_rev)
-                    raise AssertionError('element type not found')
-                except AssertionError as _e:
-                    print(_e)
-            raise AssertionError('keyord not found in dictionary')
-        except AssertionError as _e:
-            print(_e)
-    #todo: output error in vim
+        if cls._esm_find_key_in_dict(externals, keyword):
+            key_path = "/".join(cls.key_list[::-1])
+            element_name = cls.key_list[0]
+            if cls._esm_element_is_group(cls.element_dict):
+                return EsmElementGroup(key_path, element_name)
+            else:
+                element_url = cls.element_dict['url']
+                element_rev = cls.element_dict['revision']
+                if cls._esm_element_is_bsp(element_url, element_name):
+                    return EsmElementBsp(key_path, element_name, element_url, element_rev)
+                elif cls._esm_element_is_rpc(element_url, element_name):
+                    return EsmElementRpc(key_path, element_name, element_url, element_rev)
+                elif cls._esm_element_is_port(element_url, element_name):
+                    return EsmElementPort(key_path, element_name, element_url, element_rev)
+                else:
+                    return EsmElementNormal(key_path, element_name, element_url, element_rev)
+        raise AssertionError('keyord not found in dictionary')
 
     @classmethod
     def _esm_element_is_normal(cls, element_url, element_name):
@@ -109,7 +100,7 @@ class EsmElementInterface(ABC):
 
 
     def get_update_command(self):
-        return self._esm_command('update')
+        return self._esm_command('update', ['--overwrite-local-changes'])
 
 
     def get_diff_command(self):
@@ -120,8 +111,12 @@ class EsmElementInterface(ABC):
         return self._esm_command('clean')
 
 
-    def _esm_command(self, command_option):
-        command_str = 'svnext '+ command_option + ' --overwrite-local-changes -e ' + self.key_path
+    def _esm_command(self, command_option, command_attributes_list=None):
+        command_attributes
+        if command_attributes_list not None:
+            command_attributes = ' ' + ' '.join(command_attributes_list)
+
+        command_str = 'svnext '+ command_option + command_attributes + ' -e ' + self.key_path
         return command_str
 
 
@@ -133,12 +128,7 @@ class EsmElementNormal(EsmElementInterface):
 
 
     def get_update_file_command(self):
-        try:
-            raise AssertionError('commmand not supported for esm_element_type: normal')
-        except AssertionError as _e:
-            print(_e)
-            raise
-        return None
+        raise AssertionError('commmand not supported for esm_element_type: normal')
 
 
     # def update_revision(self, requested_revison='HEAD')
@@ -172,12 +162,7 @@ class EsmElementPort(EsmElementInterface):
 
 
     def get_update_file_command(self):
-        try:
-            raise AssertionError('commmand not supported for esm_element_type: port')
-        except AssertionError as _e:
-            print(_e)
-            raise
-        return None
+        raise AssertionError('commmand not supported for esm_element_type: port')
 
     # def update_revision(self, requested_revison='HEAD')
     #     if requested_revison == 'HEAD':
@@ -206,15 +191,14 @@ class EsmElementGroup(EsmElementInterface):
         super().__init__(key_path, name, 'group')
 
     def get_update_file_command(self):
-        try:
-            raise AssertionError('commmand not supported for esm_element_type: group')
-        except AssertionError as _e:
-            print(_e)
-            raise
-        return None
+        raise AssertionError('commmand not supported for esm_element_type: group')
 
-    def _esm_command(self, command_option):
-        command_str = 'svnext '+ command_option + ' --overwrite-local-changes -g ' + self.key_path
+    def _esm_command(self, command_option, command_attributes_list=None):
+        command_attributes
+        if command_attributes_list not None:
+            command_attributes = ' ' + ' '.join(command_attributes_list)
+
+        command_str = 'svnext '+ command_option + command_attributes + ' -g ' + self.key_path
         return command_str
 
 
