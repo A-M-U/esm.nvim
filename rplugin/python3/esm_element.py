@@ -1,5 +1,7 @@
 from abc import ABC, abstractstaticmethod
 import re
+import os
+import subprocess
 
 class EsmElementFactory():
     key_list = []
@@ -23,12 +25,7 @@ class EsmElementFactory():
                     return EsmElementPort(key_path, element_name, element_url, element_rev)
                 else:
                     return EsmElementNormal(key_path, element_name, element_url, element_rev)
-        raise AssertionError('keyord not found in dictionary')
-
-    @classmethod
-    def _esm_element_is_normal(cls, element_url, element_name):
-        #todo: use regex to find the repo element_name
-        return False
+        raise AssertionError('keyword: "{}" not found in dictionary'.format(keyword))
 
     @classmethod
     def _esm_element_is_bsp(cls, element_url, element_name):
@@ -112,35 +109,49 @@ class EsmElementInterface(ABC):
 
 
     def _esm_command(self, command_option, command_attributes_list=None):
-        command_attributes
-        if command_attributes_list not None:
+        command_attributes = ''
+        if command_attributes_list is not None:
             command_attributes = ' ' + ' '.join(command_attributes_list)
 
         command_str = 'svnext '+ command_option + command_attributes + ' -e ' + self.key_path
         return command_str
 
 
+    def update_revision(self):
+        result = subprocess.run('svn info --show-item last-changed-revision ' + self.url, stdout=subprocess.PIPE)
+        self.revision = result.stdout.strip().decode('utf-8')
+        return result.stdout.strip().decode('utf-8')
+
+
+    def get_url_list(self, branch_type):
+        element_repo_root_path = ''
+        if re.search(r'/tags/', self.url):
+            element_repo_root_path = self.url.split(r'/tags/')[0]
+        elif re.search(r'/trunk/', self.url):
+            splitted_url = self.url.split(r'/trunk/')
+            if len(splitted_url) > 2:
+                # in some repo urls the work trunk is available multiple times. Hence it is necessary to build the
+                # element_repo_root_path using all values of the splitted_url list except the last list index
+                element_repo_root_path = r'/trunk/'.join(splitted_url[:-1])
+            else:
+                element_repo_root_path = splitted_url[0]
+        elif re.search(r'/branches/', self.url):
+            element_repo_root_path = self.url.split(r'/branches/')[0]
+
+        result = subprocess.run('svn ls ' + element_repo_root_path + r'/' + branch_type, stdout=subprocess.PIPE)
+
+        return result.stdout.decode('utf-8').strip(os.linesep).split(os.linesep)
+
+
 class EsmElementNormal(EsmElementInterface):
     def __init__(self, key_path, name, url, rev):
         super().__init__(key_path, name, 'normal')
         self.url =  url
-        self.revison = rev
+        self.revision = rev
 
 
     def get_update_file_command(self):
         raise AssertionError('commmand not supported for esm_element_type: normal')
-
-
-    # def update_revision(self, requested_revison='HEAD')
-    #     if requested_revison == 'HEAD':
-    #         # get svn head rev from
-    #     else:
-    #         self.revison = requested_revison
-
-
-    def get_branch_list(self):
-        # extract brach dir from url and return list
-        pass
 
 
     def get_tag_list(self):
@@ -158,17 +169,11 @@ class EsmElementPort(EsmElementInterface):
     def __init__(self, key_path, name, url, rev):
         super().__init__(key_path, name, 'port')
         self.url =  url
-        self.revison = rev
+        self.revision = rev
 
 
     def get_update_file_command(self):
         raise AssertionError('commmand not supported for esm_element_type: port')
-
-    # def update_revision(self, requested_revison='HEAD')
-    #     if requested_revison == 'HEAD':
-    #         # get svn head rev from
-    #     else:
-    #         self.revison = requested_revison
 
 
     def get_branch_list(self):
@@ -193,9 +198,12 @@ class EsmElementGroup(EsmElementInterface):
     def get_update_file_command(self):
         raise AssertionError('commmand not supported for esm_element_type: group')
 
+    def update_revision(self):
+        raise AssertionError('commmand not supported for esm_element_type: group')
+
     def _esm_command(self, command_option, command_attributes_list=None):
-        command_attributes
-        if command_attributes_list not None:
+        command_attributes = ''
+        if command_attributes_list is not None:
             command_attributes = ' ' + ' '.join(command_attributes_list)
 
         command_str = 'svnext '+ command_option + command_attributes + ' -g ' + self.key_path
@@ -206,7 +214,7 @@ class EsmElementBsp(EsmElementInterface):
     def __init__(self, key_path, name, url, rev):
         super().__init__(key_path, name, 'bsp')
         self.url =  url
-        self.revison = rev
+        self.revision = rev
 
     def get_update_file_command(self):
         return None
@@ -216,7 +224,7 @@ class EsmElementRpc(EsmElementInterface):
     def __init__(self, key_path, name, url, rev):
         super().__init__(key_path, name, 'rpc')
         self.url =  url
-        self.revison = rev
+        self.revision = rev
 
     def get_update_file_command(self):
         return None
