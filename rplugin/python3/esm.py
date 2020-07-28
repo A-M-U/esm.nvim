@@ -70,28 +70,10 @@ class Esm(object):
     def __esm_keymap_enter_selection(self, args, range):
         branch_type = args[0]
         current_word = self.vim.eval('expand("<cWORD>")')
-        branch_dir = []
-        #todo modify current_element
-        if re.search(r'/tags/', self.current_element.url):
-            branch_dir = self.current_element.url.split(r'/tags/')
-            url_suffix_list = branch_dir[1].split(r'/')[1:]
-        elif re.search(r'/branches/', self.current_element.url):
-            branch_dir = self.current_element.url.split(r'/branches/')
-            url_suffix_list = branch_dir[1].split(r'/')[1:]
-        elif re.search(r'/trunk/', self.current_element.url):
-            blub = self.current_element.url.split(r'/trunk/')
-            if len(blub) > 2:
-                temp = r'/trunk/'.join(blub[:-1])
-                branch_dir.append(temp)
-                branch_dir.append(blub[-1])
-            else:
-                branch_dir = blub
 
-            url_suffix_list = branch_dir[-1].split(r'/')
+        url_prefix, url_suffix = self.current_element.get_splitted_url_list_by_branch_type()
 
-        url_suffix = (r'/').join(url_suffix_list)
-
-        self.current_element.url = branch_dir[0] + r'/' + branch_type + r'/' + current_word + url_suffix
+        self.current_element.url = url_prefix + r'/' + branch_type + r'/' + current_word + url_suffix
         self.vim.api.win_close(0, True)
         self.__esm_update_current_element_in_active_buffer()
 
@@ -145,6 +127,8 @@ class Esm(object):
                         'q': ':EsmClose<cr>'}
         for k, v in mappings.items():
             self.vim.api.buf_set_keymap(buf, 'n', k, v, {'nowait':True, 'noremap' : True, 'silent' : True })
+
+        self.vim.command('autocmd BufLeave <buffer=' + str(buf.name) + '> close')
 
         win = self.vim.api.open_win(buf, 1, opts)
 

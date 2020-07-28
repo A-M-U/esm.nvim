@@ -124,23 +124,31 @@ class EsmElementInterface(ABC):
 
 
     def get_url_list(self, branch_type):
-        element_repo_root_path = ''
-        if re.search(r'/tags/', self.url):
-            element_repo_root_path = self.url.split(r'/tags/')[0]
-        elif re.search(r'/trunk/', self.url):
-            splitted_url = self.url.split(r'/trunk/')
-            if len(splitted_url) > 2:
-                # in some repo urls the work trunk is available multiple times. Hence it is necessary to build the
-                # element_repo_root_path using all values of the splitted_url list except the last list index
-                element_repo_root_path = r'/trunk/'.join(splitted_url[:-1])
-            else:
-                element_repo_root_path = splitted_url[0]
-        elif re.search(r'/branches/', self.url):
-            element_repo_root_path = self.url.split(r'/branches/')[0]
-
-        result = subprocess.run('svn ls ' + element_repo_root_path + r'/' + branch_type, stdout=subprocess.PIPE)
+        splitted_url = self.get_splitted_url_list_by_branch_type()
+        result = subprocess.run('svn ls ' + splitted_url[0] + r'/' + branch_type, stdout=subprocess.PIPE)
 
         return result.stdout.decode('utf-8').strip(os.linesep).split(os.linesep)
+
+
+    def get_splitted_url_list_by_branch_type(self):
+        splitted_url = []
+        
+        if re.search(r'/tags/', self.current_element.url):
+            splitted_url = self.current_element.url.split(r'/tags/')
+            splitted_url[1] = splitted_url[1].split(r'/')[1:]
+        elif re.search(r'/branches/', self.current_element.url):
+            splitted_url = self.current_element.url.split(r'/branches/')
+            splitted_url[1] = splitted_url[1].split(r'/')[1:]
+        elif re.search(r'/trunk/', self.current_element.url):
+            helper_list = self.current_element.url.split(r'/trunk/')
+            if len(helper_list) > 2:
+                # some repo are nested, hence the trunk can be available multiple times. 
+                splitted_url.append(r'/trunk/'.join(helper_list[:-1]))
+                splitted_url.append(helper_list[-1])
+            else:
+                splitted_url = helper_list
+
+        return splitted_url
 
 
 class EsmElementNormal(EsmElementInterface):
