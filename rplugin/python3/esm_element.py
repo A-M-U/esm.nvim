@@ -118,9 +118,26 @@ class EsmElementInterface(ABC):
 
 
     def update_revision(self):
-        result = subprocess.run('svn info --show-item last-changed-revision ' + self.url, stdout=subprocess.PIPE)
+        revision_url = ''
+
+        if re.search(r'/tags/', self.url):
+            splitted_url = self.url.split(r'/tags/')
+            helper_list = splitted_url[1].split(r'/')
+            revision_url = splitted_url[0] + r'/tags/' + helper_list[0]
+        elif re.search(r'/branches/', self.url):
+            splitted_url = self.url.split(r'/branches/')
+            helper_list = splitted_url[1].split(r'/')
+            revision_url = splitted_url[0] + r'/branches/' + helper_list[0]
+        elif re.search(r'/trunk/', self.url):
+            helper_list = self.url.split(r'/trunk/')
+            if len(helper_list) > 2:
+                revision_url = (r'/trunk/'.join(helper_list[:-1])) + r'/trunk/'
+            else:
+                revision_url = helper_list[0] + r'/trunk/'
+
+        result = subprocess.run('svn info --show-item last-changed-revision ' + revision_url, stdout=subprocess.PIPE)
         self.revision = result.stdout.strip().decode('utf-8')
-        return result.stdout.strip().decode('utf-8')
+        return
 
 
     def get_url_list(self, branch_type):
@@ -135,10 +152,12 @@ class EsmElementInterface(ABC):
         
         if re.search(r'/tags/', self.url):
             splitted_url = self.url.split(r'/tags/')
-            splitted_url[1] = splitted_url[1].split(r'/')[1:]
+            helper_list = splitted_url[1].split(r'/')[1:]
+            splitted_url[1] = r'/'.join(helper_list)
         elif re.search(r'/branches/', self.url):
             splitted_url = self.url.split(r'/branches/')
-            splitted_url[1] = splitted_url[1].split(r'/')[1:]
+            helper_list = splitted_url[1].split(r'/')[1:]
+            splitted_url[1] = r'/'.join(helper_list)
         elif re.search(r'/trunk/', self.url):
             helper_list = self.url.split(r'/trunk/')
             if len(helper_list) > 2:
