@@ -32,7 +32,11 @@ class Esm(object):
         self.__esm_set_current_element()
 
         if branch_type == 'trunk':
-            pass
+            url_prefix, url_suffix = self.current_element.get_splitted_url_list_by_branch_type()
+            self.current_element.url = url_prefix + r'/trunk/' + url_suffix
+            self.current_element.update_revision()
+            self.__esm_update_current_element_in_active_buffer()
+            return
         elif branch_type == 'tags':
             display_list = self.current_element.get_url_list('tags')
         elif branch_type == 'branches':
@@ -41,9 +45,7 @@ class Esm(object):
             raise AssertionError('branch_type {} not supported'.format(branch_type))
 
         scratch_buffer = self.vim.api.create_buf(False, True)
-        win = self.__esm_open_window_with_enter_selection(scratch_buffer, display_list, branch_type)
-
-        self.__esm_update_current_element_in_active_buffer()
+        self.__esm_open_window_with_enter_selection(scratch_buffer, display_list, branch_type)
 
 
     @pynvim.command('EsmCmd', range='', nargs='*',sync=True)
@@ -75,10 +77,8 @@ class Esm(object):
 
         self.current_element.url = url_prefix + r'/' + branch_type + r'/' + current_word + url_suffix
         self.vim.api.win_close(0, True)
+        self.current_element.update_revision()
         self.__esm_update_current_element_in_active_buffer()
-
-
-        self.vim.command(':echo "'+ current_word + '"')
 
 
     @pynvim.command('EsmClose', range='', nargs='*',sync=True)
