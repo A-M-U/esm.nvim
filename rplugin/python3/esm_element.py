@@ -133,14 +133,14 @@ class EsmElementInterface(ABC):
     def get_splitted_url_list_by_branch_type(self):
         splitted_url = []
         
-        if re.search(r'/tags/', self.current_element.url):
-            splitted_url = self.current_element.url.split(r'/tags/')
+        if re.search(r'/tags/', self.url):
+            splitted_url = self.url.split(r'/tags/')
             splitted_url[1] = splitted_url[1].split(r'/')[1:]
-        elif re.search(r'/branches/', self.current_element.url):
-            splitted_url = self.current_element.url.split(r'/branches/')
+        elif re.search(r'/branches/', self.url):
+            splitted_url = self.url.split(r'/branches/')
             splitted_url[1] = splitted_url[1].split(r'/')[1:]
-        elif re.search(r'/trunk/', self.current_element.url):
-            helper_list = self.current_element.url.split(r'/trunk/')
+        elif re.search(r'/trunk/', self.url):
+            helper_list = self.url.split(r'/trunk/')
             if len(helper_list) > 2:
                 # some repo are nested, hence the trunk can be available multiple times. 
                 splitted_url.append(r'/trunk/'.join(helper_list[:-1]))

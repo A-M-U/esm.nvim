@@ -128,7 +128,7 @@ class Esm(object):
         for k, v in mappings.items():
             self.vim.api.buf_set_keymap(buf, 'n', k, v, {'nowait':True, 'noremap' : True, 'silent' : True })
 
-        self.vim.command('autocmd BufLeave <buffer=' + str(buf.name) + '> close')
+        self.vim.command('autocmd BufLeave <buffer=' + str(buf.number) + '> close')
 
         win = self.vim.api.open_win(buf, 1, opts)
 
