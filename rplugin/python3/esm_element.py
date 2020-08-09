@@ -181,18 +181,7 @@ class EsmElementNormal(EsmElementInterface):
         raise AssertionError('commmand not supported for esm_element_type: normal')
 
 
-    def get_tag_list(self):
-        # extract tags dir from url and return list
-        pass
-
-
-    def set_url_and_update_revision(self, new_url):
-        self.url = new_url
-        self.update_revision()
-
-
 class EsmElementPort(EsmElementInterface):
-
     def __init__(self, key_path, name, url, rev):
         super().__init__(key_path, name, 'port')
         self.url =  url
@@ -201,21 +190,6 @@ class EsmElementPort(EsmElementInterface):
 
     def get_update_file_command(self):
         raise AssertionError('commmand not supported for esm_element_type: port')
-
-
-    def get_branch_list(self):
-        # extract brach dir from url and return list
-        pass
-
-
-    def get_tag_list(self):
-        # extract tags dir from url and return list
-        pass
-
-
-    def set_url_and_update_revision(self, new_url):
-        self.url = new_url
-        self.update_revision()
 
 
 class EsmElementGroup(EsmElementInterface):
