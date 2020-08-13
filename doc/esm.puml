@@ -1,0 +1,68 @@
+@startuml
+
+class Esm {
+    -vim
+
+    +esm_change_rev()
+    +esm_change_url()
+    +esm_close_win()
+    +esm_cmd()
+}
+
+Esm ..> EsmElementFactory:<<uses>>
+Esm ..> EsmElementInterface:<<uses>>
+
+class EsmElementFactory{
+    -key_list:list
+    -element_dict:dict
+
+    +get_element()
+}
+
+
+abstract class EsmElementInterface <<Interface>>{
+    +{abstract}get_update_file_command()
+    +get_update_command()
+    +get_diff_command()
+    +get_clean_command()
+    +update_revision()
+    +get_url_list()
+    +get_splitted_url_list_by_branch_type()
+}
+
+class EsmElementNormal {
+    +get_update_file_command()
+}
+
+class EsmElementGroup {
+    +get_update_file_command()
+    +update_revision()
+}
+
+class EsmElementBsp {
+    +get_update_file_command()
+}
+
+class EsmElementRpc {
+    +get_update_file_command()
+}
+
+class EsmElementPort {
+    +get_update_file_command()
+}
+
+EsmElementNormal ..|> EsmElementInterface
+EsmElementGroup ..|> EsmElementInterface
+EsmElementBsp ..|> EsmElementInterface
+EsmElementRpc ..|> EsmElementInterface
+EsmElementPort ..|> EsmElementInterface
+
+EsmElementFactory ..> EsmElementNormal :<<create>>
+EsmElementFactory ..> EsmElementGroup :<<create>>
+EsmElementFactory ..> EsmElementPort :<<create>>
+EsmElementFactory ..> EsmElementBsp :<<create>>
+EsmElementFactory ..> EsmElementRpc :<<create>>
+
+
+
+@enduml
