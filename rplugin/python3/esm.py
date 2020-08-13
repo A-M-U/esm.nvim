@@ -82,11 +82,6 @@ class Esm(object):
         self.__esm_update_current_element_in_active_buffer()
 
 
-    @pynvim.command('EsmClose', range='', nargs='*',sync=True)
-    def esm_close_win(self, args, range):
-        self.vim.api.win_close(0, True)
-
-
     def __esm_update_current_element_in_active_buffer(self):
         """ takes esm_element object """
         row, column = self.vim.api.win_get_cursor(0)
@@ -125,7 +120,7 @@ class Esm(object):
         opts = {'relative': 'cursor', 'width': width, 'height': heigth, 'col': 0, 'row': 1, 'anchor': 'NW', 'style': 'minimal'}
 
         mappings = { '<cr>': ':EsmEnter ' + branch_type + '<cr>',
-                        'q': ':EsmClose<cr>'}
+                        'q': ':close<cr>'}
         for k, v in mappings.items():
             self.vim.api.buf_set_keymap(buf, 'n', k, v, {'nowait':True, 'noremap' : True, 'silent' : True })
 
