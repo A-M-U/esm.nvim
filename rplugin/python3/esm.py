@@ -39,6 +39,7 @@ class Esm(object):
             return
         elif branch_type == 'tags':
             display_list = self.current_element.get_url_list('tags')
+            display_list.reverse()
         elif branch_type == 'branches':
             display_list = self.current_element.get_url_list('branches')
         else:
