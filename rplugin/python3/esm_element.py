@@ -2,6 +2,14 @@ from abc import ABC, abstractstaticmethod
 import re
 import os
 import subprocess
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(filename)(s%(lineno)d):%(message)s')
+file_handler = logging.FileHandler('esm_element.log')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
 class EsmElementFactory():
     key_list = []

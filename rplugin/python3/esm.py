@@ -3,11 +3,19 @@ import yaml
 import os
 import sys
 import re
+import logging
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
 
 from esm_element import EsmElementFactory
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(filename)(s%(lineno)d):%(message)s')
+file_handler = logging.FileHandler('esm.log')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
 @pynvim.plugin
 class Esm(object):
@@ -19,7 +27,6 @@ class Esm(object):
 
     @pynvim.command('EsmRev', range='', nargs='*',sync=True)
     def esm_change_rev(self, args, range):
-
         self.__esm_set_current_element()
         self.current_element.update_revision()
         self.__esm_update_current_element_in_active_buffer()
